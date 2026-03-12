@@ -5,12 +5,14 @@ plugins {
 
 android {
     namespace = "io.github.auag0.imnotadeveloper"
-    compileSdk = 34
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId = "io.github.auag0.imnotadeveloper"
-        minSdk = 23
-        targetSdk = 34
+        minSdk = 24
+        targetSdk = 36
         versionCode = 2
         versionName = "1.0.1"
 
@@ -18,14 +20,7 @@ android {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
     }
-    signingConfigs {
-        create("release") {
-            storeFile = File(projectDir, "release-keystore.jks")
-            storePassword = System.getenv("storePassword")
-            keyAlias = System.getenv("keyAlias")
-            keyPassword = System.getenv("keyPassword")
-        }
-    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -34,7 +29,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            isJniDebuggable = true
+            isShrinkResources = false
         }
     }
     compileOptions {
@@ -52,6 +50,9 @@ android {
             excludes += "/kotlin/**"
             excludes += "/kotlin-tooling-metadata.json"
         }
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
     externalNativeBuild {
         ndkBuild {
@@ -62,5 +63,4 @@ android {
 
 dependencies {
     compileOnly("de.robv.android.xposed:api:82")
-    //compileOnly("de.robv.android.xposed:api:82:sources")
 }

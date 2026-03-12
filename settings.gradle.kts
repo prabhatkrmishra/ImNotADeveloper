@@ -1,8 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-include(":dobby")
-
-
 pluginManagement {
     repositories {
         google {
