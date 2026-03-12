@@ -12,27 +12,72 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import io.github.auag0.imnotadeveloper.BuildConfig
 import io.github.auag0.imnotadeveloper.common.Logger.logD
 import io.github.auag0.imnotadeveloper.common.Logger.logE
+import java.lang.reflect.Method
+
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEBUG_PROPERTIES
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEBUG_PROPERTIES_IN_NATIVE
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEVELOPER_MODE
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_USB_DEBUG
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_WIRELESS_DEBUG
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_SYS_USB_STATE
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_SYS_USB_CONFIG
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_PERSIST_SYS_USB_CONFIG
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_SYS_USB_FFS_READY
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_INIT_SVC_ADBD
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_SERVICE_ADB_TCP_PORT
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_RO_ADB_SECURE
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_SYS_USB_ADB_DISABLED
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_PERSIST_SERVICE_ADB_ENABLE
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_RO_DEBUGGABLE
+import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_RO_SECURE
 import io.github.auag0.imnotadeveloper.common.PropKeys
 import io.github.auag0.imnotadeveloper.common.PropKeys.ADB_ENABLED
 import io.github.auag0.imnotadeveloper.common.PropKeys.ADB_WIFI_ENABLED
 import io.github.auag0.imnotadeveloper.common.PropKeys.DEVELOPMENT_SETTINGS_ENABLED
-import java.lang.reflect.Method
 
 class Main : IXposedHookLoadPackage {
     private val prefs = XSharedPreferences(BuildConfig.APPLICATION_ID)
 
-    val propOverrides = mapOf(
-        PropKeys.SYS_USB_FFS_READY to "0",
-        PropKeys.SYS_USB_CONFIG to "mtp",
-        PropKeys.PERSIST_SYS_USB_CONFIG to "mtp",
-        PropKeys.SYS_USB_STATE to "mtp",
-        PropKeys.INIT_SVC_ADBD to "stopped"
-    )
+    private fun buildOverrides(): Map<String, String> {
+        val map = mutableMapOf<String, String>()
+
+        if (getSPBool(HIDE_SYS_USB_FFS_READY, true))
+            map[PropKeys.SYS_USB_FFS_READY] = "0"
+
+        if (getSPBool(HIDE_SYS_USB_CONFIG, true))
+            map[PropKeys.SYS_USB_CONFIG] = "mtp"
+
+        if (getSPBool(HIDE_PERSIST_SYS_USB_CONFIG, true))
+            map[PropKeys.PERSIST_SYS_USB_CONFIG] = "mtp"
+
+        if (getSPBool(HIDE_SYS_USB_STATE, true))
+            map[PropKeys.SYS_USB_STATE] = "mtp"
+
+        if (getSPBool(HIDE_INIT_SVC_ADBD, true))
+            map[PropKeys.INIT_SVC_ADBD] = "stopped"
+
+        if (getSPBool(HIDE_SYS_USB_ADB_DISABLED, true))
+            map[PropKeys.SYS_USB_ADB_DISABLED] = "1"
+
+        if (getSPBool(HIDE_PERSIST_SERVICE_ADB_ENABLE, true))
+            map[PropKeys.PERSIST_SERVICE_ADB_ENABLE] = "0"
+
+        if (getSPBool(HIDE_SERVICE_ADB_TCP_PORT, true))
+            map[PropKeys.SERVICE_ADB_TCP_PORT] = "-1"
+
+        if (getSPBool(HIDE_RO_ADB_SECURE, true))
+            map[PropKeys.RO_ADB_SECURE] = "1"
+
+        if (getSPBool(HIDE_RO_DEBUGGABLE, true))
+            map[PropKeys.RO_DEBUGGABLE] = "0"
+
+        if (getSPBool(HIDE_RO_SECURE, true))
+            map[PropKeys.RO_SECURE] = "1"
+
+        return map
+    }
+
+    val propOverrides get() = buildOverrides()
 
     override fun handleLoadPackage(param: LoadPackageParam) {
         hookSettingsMethods(param.classLoader)

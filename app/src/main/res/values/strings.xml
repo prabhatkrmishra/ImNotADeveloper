@@ -1,11 +1,34 @@
 <resources>
     <string name="app_name">ImNotADeveloper</string>
 
+    <!-- developer options -->
     <string name="hide_developer_mode">Hide developer mode</string>
-    <string name="hide_usb_debug">Hide usb debug</string>
-    <string name="hide_wireless_debug">Hide wireless debug</string>
+
+    <!-- adb / usb debugging -->
+    <string name="hide_usb_debug">Hide USB debugging</string>
+    <string name="hide_wireless_debug">Hide wireless debugging</string>
+
+    <!-- system property based detection -->
+    <string name="hide_usb_state">Hide sys.usb.state (ADB state)</string>
+    <string name="hide_usb_config">Hide sys.usb.config (ADB config)</string>
+    <string name="hide_persist_usb_config">Hide persist.sys.usb.config</string>
+    <string name="hide_usb_ffs_ready">Hide sys.usb.ffs.ready</string>
+    <string name="hide_init_svc_adbd">Hide init.svc.adbd (ADB daemon)</string>
+    <string name="hide_sys_usb_adb_disabled">Hide sys.usb.adb.disabled</string>
+    <string name="hide_persist_service_adb_enable">Hide persist.service.adb.enable</string>
+
+    <!-- tcp adb -->
+    <string name="hide_adb_tcp_port">Hide service.adb.tcp.port (ADB over TCP)</string>
+
+    <!-- build/debug properties -->
+    <string name="hide_ro_adb_secure">Hide ro.adb.secure</string>
+    <string name="hide_ro_debuggable">Hide ro.debuggable</string>
+    <string name="hide_ro_secure">Hide ro.secure</string>
+
+    <!-- grouped toggles -->
     <string name="hide_debug_properties">Hide debug properties</string>
     <string name="hide_debug_properties_in_native">Hide debug properties in native</string>
 
+    <!-- error -->
     <string name="sp_is_not_available">SharedPreferences is not available</string>
 </resources>
