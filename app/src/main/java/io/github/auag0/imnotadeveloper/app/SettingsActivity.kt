@@ -8,7 +8,6 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.Switch
-import android.widget.Toast
 import io.github.auag0.imnotadeveloper.BuildConfig
 import io.github.auag0.imnotadeveloper.R
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEBUG_PROPERTIES
@@ -16,6 +15,7 @@ import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEBUG_PROPERTIES_IN_
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEVELOPER_MODE
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_USB_DEBUG
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_WIRELESS_DEBUG
+import java.io.File
 
 class SettingsActivity : Activity() {
     private val options by lazy {
@@ -24,7 +24,11 @@ class SettingsActivity : Activity() {
             Option(getString(R.string.hide_usb_debug), HIDE_USB_DEBUG, true),
             Option(getString(R.string.hide_wireless_debug), HIDE_WIRELESS_DEBUG, true),
             Option(getString(R.string.hide_debug_properties), HIDE_DEBUG_PROPERTIES, true),
-            Option(getString(R.string.hide_debug_properties_in_native), HIDE_DEBUG_PROPERTIES_IN_NATIVE, true),
+            Option(
+                getString(R.string.hide_debug_properties_in_native),
+                HIDE_DEBUG_PROPERTIES_IN_NATIVE,
+                true
+            ),
         )
     }
 
@@ -34,22 +38,29 @@ class SettingsActivity : Activity() {
         val defaultValue: Boolean
     )
 
-    @SuppressLint("WorldReadableFiles")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val prefs = try {
-            @Suppress("DEPRECATION")
-            getSharedPreferences(
-                "${BuildConfig.APPLICATION_ID}_preferences",
-                Context.MODE_WORLD_READABLE
-            )
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-            Toast.makeText(this, R.string.sp_is_not_available, Toast.LENGTH_LONG).show()
-            finish()
-            return
+        val prefName = "${BuildConfig.APPLICATION_ID}_preferences"
+        val prefs = getSharedPreferences(prefName, Context.MODE_PRIVATE)
+
+        @SuppressLint("SetWorldReadable")
+        fun applyWorldReadablePermissions() {
+            try {
+                val dataDir = applicationInfo.dataDir
+                val prefsDir = File(dataDir, "shared_prefs")
+                val prefsFile = File(prefsDir, "$prefName.xml")
+
+                prefsDir.setExecutable(true, false)
+                prefsDir.setReadable(true, false)
+                prefsFile.setReadable(true, false)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
+
+        // I ensure permissions are applied initially as well
+        applyWorldReadablePermissions()
 
         val container = LinearLayout(this).apply {
             gravity = Gravity.CENTER_HORIZONTAL
@@ -69,6 +80,7 @@ class SettingsActivity : Activity() {
                 isChecked = prefs.getBoolean(option.key, option.defaultValue)
                 setOnCheckedChangeListener { _, isChecked ->
                     prefs.edit().putBoolean(option.key, isChecked).apply()
+                    applyWorldReadablePermissions()
                 }
             }
             container.addView(switch)
