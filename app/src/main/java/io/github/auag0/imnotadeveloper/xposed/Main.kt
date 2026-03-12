@@ -36,7 +36,7 @@ import io.github.auag0.imnotadeveloper.common.PropKeys.ADB_WIFI_ENABLED
 import io.github.auag0.imnotadeveloper.common.PropKeys.DEVELOPMENT_SETTINGS_ENABLED
 
 class Main : IXposedHookLoadPackage {
-    private val prefs = XSharedPreferences(BuildConfig.APPLICATION_ID)
+    private val prefs = XSharedPreferences(BuildConfig.APPLICATION_ID, "${BuildConfig.APPLICATION_ID}_preferences")
 
     private fun buildOverrides(): Map<String, String> {
         val map = mutableMapOf<String, String>()
@@ -80,19 +80,25 @@ class Main : IXposedHookLoadPackage {
     val propOverrides get() = buildOverrides()
 
     override fun handleLoadPackage(param: LoadPackageParam) {
+        hookNativeMethods()
         hookSettingsMethods(param.classLoader)
         hookSystemPropertiesMethods(param.classLoader)
         hookProcessMethods(param.classLoader)
-        hookNativeMethods()
     }
 
     private fun hookNativeMethods() {
-        if (!getSPBool(HIDE_DEBUG_PROPERTIES_IN_NATIVE, true)) return
+        if (!getSPBool(HIDE_DEBUG_PROPERTIES_IN_NATIVE, true)) {
+            logD("hookNativeMethods: skipped (pref is false)")
+            return
+        }
         try {
-            System.loadLibrary("ImNotADeveloper")
+            logD("hookNativeMethods: propOverrides = $propOverrides")
+            System.loadLibrary("developer_disabler")
+            NativeFun.initHooks();
             NativeFun.setProps(propOverrides)
+            logD("hookNativeMethods: setProps called successfully")
         } catch (e: Exception) {
-            logE(e.message)
+            logE("hookNativeMethods: FAILED - ${e.message}")
         }
     }
 
@@ -100,7 +106,9 @@ class Main : IXposedHookLoadPackage {
         if (!getSPBool(HIDE_DEBUG_PROPERTIES, true)) return
         val hookCmd = object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
-                hookedLog(param)
+                if (propOverrides.containsKey(param.args[0])) {
+                    hookedLog(param)
+                }
                 val cmdarray = (param.args[0] as Array<*>).filterIsInstance<String>()
                 val firstCmd = cmdarray.getOrNull(0)
                 val secondCmd = cmdarray.getOrNull(1)
@@ -132,7 +140,9 @@ class Main : IXposedHookLoadPackage {
             hookAllMethods(systemProperties, methodName, object : XC_MethodReplacement() {
                 override fun replaceHookedMethod(param: MethodHookParam): Any? {
                     if (param.args[0] !is String) return param.invokeOriginalMethod()
-                    hookedLog(param)
+                    if (propOverrides.containsKey(param.args[0])) {
+                        hookedLog(param)
+                    }
                     val key = param.args[0] as String
                     val method = param.method as Method
 
@@ -173,7 +183,9 @@ class Main : IXposedHookLoadPackage {
             val clazz = findClass(it, classLoader)
             hookAllMethods(clazz, "getStringForUser", object : XC_MethodReplacement() {
                 override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                    hookedLog(param)
+                    if (propOverrides.containsKey(param.args[0])) {
+                        hookedLog(param)
+                    }
                     val name = param.args[1] as? String?
                     return if (bannedKeys.contains(name)) {
                         "0"

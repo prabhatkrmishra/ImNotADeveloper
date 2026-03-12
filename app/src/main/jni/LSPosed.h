@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <cstdint>
 
 typedef int (*HookFunType)(void *func, void *replace, void **backup);
 

@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.Switch
 import io.github.auag0.imnotadeveloper.BuildConfig
 import io.github.auag0.imnotadeveloper.R
+import io.github.auag0.imnotadeveloper.common.Logger.logD
 import java.io.File
 
 import io.github.auag0.imnotadeveloper.common.PrefKeys.HIDE_DEBUG_PROPERTIES
